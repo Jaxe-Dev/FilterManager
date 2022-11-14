@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <FilterManager.Preset.Label>Preset</FilterManager.Preset.Label>
+
+  <FilterManager.Button.Invert>Invert</FilterManager.Button.Invert>
+  <FilterManager.Button.Presets>Presets</FilterManager.Button.Presets>
+
+  <FilterManager.Button.Save>Save</FilterManager.Button.Save>
+
+  <FilterManager.Button.PresetMenu.Apply>Apply</FilterManager.Button.PresetMenu.Apply>
+  <FilterManager.Button.PresetMenu.ApplyInverse>Apply inverse</FilterManager.Button.PresetMenu.ApplyInverse>
+
+  <FilterManager.Button.PresetMenu.Delete>Delete</FilterManager.Button.PresetMenu.Delete>
+  <FilterManager.Button.PresetMenu.Overwrite>Overwrite with current</FilterManager.Button.PresetMenu.Overwrite>
+
+  <FilterManager.Button.PresetMenu.CheckAllowed>Check allowed only</FilterManager.Button.PresetMenu.CheckAllowed>
+  <FilterManager.Button.PresetMenu.CheckForbidden>Check forbidden only</FilterManager.Button.PresetMenu.CheckForbidden>
+  <FilterManager.Button.PresetMenu.UncheckAllowed>Uncheck allowed only</FilterManager.Button.PresetMenu.UncheckAllowed>
+  <FilterManager.Button.PresetMenu.UncheckForbidden>Uncheck forbidden only</FilterManager.Button.PresetMenu.UncheckForbidden>
+
+  <FilterManager.IntegratedPreset.Degradable>Degradeable</FilterManager.IntegratedPreset.Degradable>
+  <FilterManager.IntegratedPreset.Rottable>Rottable</FilterManager.IntegratedPreset.Rottable>
+</LanguageData>
