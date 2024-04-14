@@ -18,8 +18,8 @@ namespace FilterManager.Core
     private const string XElementSpecials = "Specials";
     private const string XElementThings = "Things";
 
-    private static readonly SortedDictionary<string, Preset> PresetsDictionary = new SortedDictionary<string, Preset>();
-    public static IEnumerable<Preset> Presets => PresetsDictionary.Values.OrderByDescending(preset => preset.Integrated).ThenBy(preset => preset.Name);
+    private static readonly SortedDictionary<string, Preset> PresetsDictionary = new();
+    public static IEnumerable<Preset> Presets => PresetsDictionary.Values.OrderByDescending(static preset => preset.Integrated).ThenBy(static preset => preset.Name);
 
     public static void AddPreset(string name)
     {
@@ -31,7 +31,7 @@ namespace FilterManager.Core
       Save();
     }
 
-    public static void AddIntegrated(string name, Dictionary<SpecialThingFilterDef, bool> filters, Dictionary<ThingDef, bool> things)
+    public static void AddIntegrated(string name, Dictionary<SpecialThingFilterDef, bool>? filters, Dictionary<ThingDef, bool> things)
     {
       var preset = new Preset(name, filters, things);
       if (preset.Filters.Count + preset.Things.Count == 0) { return; }
@@ -58,7 +58,7 @@ namespace FilterManager.Core
       var document = XDocument.Load(Mod.ConfigFile.FullName);
       var presets = document.Element(XElementPresets);
 
-      foreach (var element in presets.Elements(XElementPreset) ?? Enumerable.Empty<XElement>())
+      foreach (var element in presets?.Elements(XElementPreset) ?? Enumerable.Empty<XElement>())
       {
         var name = element.Attribute(XAttributeName)?.Value;
         if (string.IsNullOrWhiteSpace(name))
@@ -75,13 +75,13 @@ namespace FilterManager.Core
           var specials = LoadDefs<SpecialThingFilterDef>(element.Element(XElementSpecials));
           var things = LoadDefs<ThingDef>(element.Element(XElementThings));
 
-          PresetsDictionary[name] = new Preset(name, hitpoints, quality, specials, things);
+          PresetsDictionary[name!] = new Preset(name!, hitpoints, quality, specials, things);
         }
         catch { Mod.Warning($"Failed to load preset '{name}'"); }
       }
     }
 
-    private static FloatRange? LoadHitpoints(XElement root)
+    private static FloatRange? LoadHitpoints(XElement? root)
     {
       if (root == null) { return null; }
       try { return FloatRange.FromString(root.Value); }
@@ -92,7 +92,7 @@ namespace FilterManager.Core
       }
     }
 
-    private static QualityRange? LoadQuality(XElement root)
+    private static QualityRange? LoadQuality(XElement? root)
     {
       if (root == null) { return null; }
       try { return QualityRange.FromString(root.Value); }
@@ -103,7 +103,7 @@ namespace FilterManager.Core
       }
     }
 
-    private static Dictionary<T, bool> LoadDefs<T>(XElement root) where T : Def
+    private static Dictionary<T, bool> LoadDefs<T>(XElement? root) where T : Def
     {
       var dictionary = new Dictionary<T, bool>();
       if (root == null) { return dictionary; }
@@ -128,10 +128,10 @@ namespace FilterManager.Core
 
       try
       {
-        foreach (var preset in Presets.Where(preset => !preset.Integrated)) { presets.Add(SerializePreset(preset)); }
+        foreach (var preset in Presets.Where(static preset => !preset.Integrated)) { presets.Add(SerializePreset(preset)); }
         document.Add(presets);
 
-        Mod.ConfigFile.Directory.Create();
+        Mod.ConfigFile.Directory!.Create();
         document.Save(Mod.ConfigFile.FullName);
       }
       catch (Exception exception) { throw Mod.Exception("Error saving presets", exception); }
@@ -140,7 +140,7 @@ namespace FilterManager.Core
     private static void SerializeDefs<T>(string name, Dictionary<T, bool> dictionary, XElement root) where T : Def
     {
       var element = new XElement(name);
-      foreach (var entry in dictionary) { element.Add(new XElement(entry.Key.defName) { Value = XmlConvert.ToString(entry.Value) }); }
+      foreach (var entry in dictionary) { element.Add(new XElement(entry.Key!.defName) { Value = XmlConvert.ToString(entry.Value) }); }
       if (element.HasElements) { root.Add(element); }
     }
 

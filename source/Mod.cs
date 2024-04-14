@@ -11,9 +11,9 @@ namespace FilterManager
   {
     public const string Id = "FilterManager";
     public const string Name = "Filter Manager";
-    public const string Version = "1.5";
+    public const string Version = "1.6";
 
-    public static readonly FileInfo ConfigFile = new FileInfo(Path.Combine(GenFilePaths.ConfigFolderPath, Id, "Presets.xml"));
+    public static readonly FileInfo ConfigFile = new(Path.Combine(GenFilePaths.ConfigFolderPath, Id, "Presets.xml"));
 
     static Mod()
     {
@@ -28,6 +28,6 @@ namespace FilterManager
     public static void Warning(string message) => Verse.Log.Warning(PrefixMessage(message));
     private static string PrefixMessage(string message) => $"[{Name} v{Version}] {message}";
 
-    public static Exception Exception(string message, Exception exception) => new Exception(PrefixMessage(message), exception);
+    public static Exception Exception(string message, Exception exception) => new(PrefixMessage(message), exception);
   }
 }
