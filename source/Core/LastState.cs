@@ -26,7 +26,7 @@ namespace FilterManager.Core
       Rect = rect;
 
       ActiveFilter = activeFilter;
-      ParentFilter = parentFilter;
+      ParentFilter = parentFilter ?? activeFilter;
 
       _node = ParentFilter?.DisplayRootCategory ?? ThingCategoryNodeDatabase.RootNode;
 
