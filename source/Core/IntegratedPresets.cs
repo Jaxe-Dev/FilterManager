@@ -13,7 +13,7 @@ namespace FilterManager.Core
       Storage.AddIntegrated("FilterManager.IntegratedPreset.Rottable".Translate(), null, GetRottable());
     }
 
-    private static Dictionary<ThingDef, bool> GetDegradable() => ThingCategoryNodeDatabase.RootNode.catDef.DescendantThingDefs.Distinct().ToDictionary(def => def, def => def.CanEverDeteriorate && def.GetStatValueAbstract(StatDefOf.DeteriorationRate) > 0);
-    private static Dictionary<ThingDef, bool> GetRottable() => ThingCategoryNodeDatabase.RootNode.catDef.DescendantThingDefs.Distinct().ToDictionary(def => def, def => def.HasComp(typeof(CompRottable)));
+    private static Dictionary<ThingDef, bool> GetDegradable() => ThingCategoryNodeDatabase.RootNode!.catDef!.DescendantThingDefs.Distinct().ToDictionary(static def => def, static def => def.CanEverDeteriorate && def.GetStatValueAbstract(StatDefOf.DeteriorationRate) > 0);
+    private static Dictionary<ThingDef, bool> GetRottable() => ThingCategoryNodeDatabase.RootNode!.catDef!.DescendantThingDefs.Distinct().ToDictionary(static def => def, static def => def.HasComp(typeof(CompRottable)));
   }
 }

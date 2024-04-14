@@ -7,7 +7,10 @@ namespace FilterManager.Core
 {
   internal static class Gfx
   {
-    public const float ButtonHeight = 24f;
+    private const float ButtonHeight = 24f;
+    private const float ButtonPadding = 3f;
+
+    public const float OffsetHeight = ButtonHeight;
 
     public static bool DrawButton(Rect rect, string label, bool active = true)
     {
@@ -24,21 +27,14 @@ namespace FilterManager.Core
 
     public static void DrawButtons()
     {
-      var rect = LastState.Rect.ContractedBy(1f);
+      Widgets.DrawBoxSolid(LastState.Rect.ContractedBy(1f * Prefs.UIScale).TopPartPixels(ButtonHeight + ButtonPadding).Rounded(), Widgets.MenuSectionBGFillColor);
+      var buttonRect = new Rect(LastState.Rect.x + ButtonPadding, LastState.Rect.y + ButtonPadding, ((LastState.Rect.width - 2f - ButtonPadding) / 2f) - ButtonPadding, ButtonHeight);
 
-      var font = Text.Font;
-      Text.Font = GameFont.Tiny;
+      if (DrawButton(buttonRect, "FilterManager.Button.Invert".Translate())) { LastState.InvertSelection(); }
+      if (!DrawButton(new Rect(buttonRect.xMax + ButtonPadding, buttonRect.y, buttonRect.width, buttonRect.height), "FilterManager.Button.Presets".Translate())) { return; }
 
-      var buttonWidth = rect.width / 2f;
-
-      if (DrawButton(new Rect(rect.x, rect.y, buttonWidth, ButtonHeight), "FilterManager.Button.Invert".Translate())) { LastState.InvertSelection(); }
-      if (DrawButton(new Rect(rect.xMax - buttonWidth, rect.y, buttonWidth, ButtonHeight), "FilterManager.Button.Presets".Translate()))
-      {
-        if (PresetWindow.Instance?.IsOpen ?? false) { PresetWindow.Instance.Close(); }
-        else { Find.WindowStack.Add(new PresetWindow()); }
-      }
-
-      Text.Font = font;
+      if (PresetWindow.Instance?.IsOpen ?? false) { PresetWindow.Instance.Close(); }
+      else { Find.WindowStack!.Add(new PresetWindow()); }
     }
   }
 }

@@ -21,16 +21,16 @@ namespace FilterManager.Core
 
     private const float RightButtonWidth = 60f;
 
-    public static PresetWindow Instance;
+    public static PresetWindow? Instance;
 
-    private static readonly Color ButtonSelectedColor = new Color(0.5f, 1f, 0.5f);
+    private static readonly Color ButtonSelectedColor = new(0.5f, 1f, 0.5f);
 
-    private static readonly Regex NameEntryRegex = new Regex("^[^*<>[\\]]*$");
+    private static readonly Regex NameEntryRegex = new("^[^*<>[\\]]*$");
 
     private Vector2 _scrollPosition;
     private Rect _scrollRect;
 
-    private string _nameEntry;
+    private string? _nameEntry;
     private bool _focusNameEntry = true;
 
     public PresetWindow()
@@ -43,8 +43,11 @@ namespace FilterManager.Core
 
     protected override void SetInitialSizeAndPosition()
     {
-      var rect = GUIUtility.GUIToScreenRect(LastState.Rect);
-      windowRect = new Rect(rect.xMax, rect.y, Width, rect.height).Rounded();
+      var lastRect = LastState.Rect;
+      lastRect.position /= Prefs.UIScale;
+
+      var rect = GUIUtility.GUIToScreenRect(lastRect);
+      windowRect = new Rect(rect.xMax + GenUI.GapTiny, rect.y, Width, rect.height).Rounded();
     }
 
     public override void DoWindowContents(Rect rect)
@@ -74,7 +77,7 @@ namespace FilterManager.Core
       Widgets.Label(new Rect(rect.x, rect.y, NameEntryLabelWidth, rect.height), "FilterManager.Preset.Label".Translate());
 
       GUI.SetNextControlName(NameEntryControl);
-      var nameEntry = Widgets.TextField(new Rect(rect.x + NameEntryLabelWidth, rect.y, rect.width - (NameEntryLabelWidth + RightButtonWidth), Text.LineHeight), _nameEntry, NameEntryMaxLength, NameEntryRegex);
+      var nameEntry = Widgets.TextField(new Rect(rect.x + NameEntryLabelWidth, rect.y, rect.width - (NameEntryLabelWidth + RightButtonWidth), Text.LineHeight), _nameEntry, NameEntryMaxLength, NameEntryRegex) ?? "";
       if (nameEntry.Length <= NameEntryMaxLength) { _nameEntry = nameEntry; }
 
       if (_focusNameEntry)
@@ -85,7 +88,7 @@ namespace FilterManager.Core
         _focusNameEntry = false;
       }
 
-      if (Gfx.DrawButton(new Rect(rect.xMax - RightButtonWidth, rect.y, RightButtonWidth, Text.LineHeight), "FilterManager.Button.Save".Translate(), !string.IsNullOrWhiteSpace(_nameEntry))) { Storage.AddPreset(_nameEntry); }
+      if (Gfx.DrawButton(new Rect(rect.xMax - RightButtonWidth, rect.y, RightButtonWidth, Text.LineHeight), "FilterManager.Button.Save".Translate(), !string.IsNullOrWhiteSpace(_nameEntry))) { Storage.AddPreset(_nameEntry!); }
     }
 
     private void DrawPresets(Rect rect)
@@ -116,7 +119,7 @@ namespace FilterManager.Core
       _scrollRect.height = y;
     }
 
-    public void SetName(string name = null)
+    public void SetName(string? name = null)
     {
       _nameEntry = name ?? null;
       _focusNameEntry = true;
