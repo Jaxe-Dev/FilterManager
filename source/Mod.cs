@@ -4,30 +4,29 @@ using FilterManager.Core;
 using HarmonyLib;
 using Verse;
 
-namespace FilterManager
+namespace FilterManager;
+
+[StaticConstructorOnStartup]
+internal static class Mod
 {
-  [StaticConstructorOnStartup]
-  internal static class Mod
+  public const string Id = "FilterManager";
+  public const string Name = "Filter Manager";
+  public const string Version = "1.7";
+
+  public static readonly FileInfo ConfigFile = new(Path.Combine(GenFilePaths.ConfigFolderPath, Id, "Presets.xml"));
+
+  static Mod()
   {
-    public const string Id = "FilterManager";
-    public const string Name = "Filter Manager";
-    public const string Version = "1.6";
+    new Harmony(Id).PatchAll();
 
-    public static readonly FileInfo ConfigFile = new(Path.Combine(GenFilePaths.ConfigFolderPath, Id, "Presets.xml"));
+    Storage.Load();
 
-    static Mod()
-    {
-      new Harmony(Id).PatchAll();
-
-      Storage.Load();
-
-      Log("Initialized");
-    }
-
-    public static void Log(string message) => Verse.Log.Message(PrefixMessage(message));
-    public static void Warning(string message) => Verse.Log.Warning(PrefixMessage(message));
-    private static string PrefixMessage(string message) => $"[{Name} v{Version}] {message}";
-
-    public static Exception Exception(string message, Exception exception) => new(PrefixMessage(message), exception);
+    Log("Initialized");
   }
+
+  public static void Log(string message) => Verse.Log.Message(PrefixMessage(message));
+  public static void Warning(string message) => Verse.Log.Warning(PrefixMessage(message));
+  private static string PrefixMessage(string message) => $"[{Name} v{Version}] {message}";
+
+  public static Exception Exception(string message, Exception exception) => new(PrefixMessage(message), exception);
 }

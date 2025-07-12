@@ -1,5 +1,5 @@
 ﻿# Filter Manager
-![Mod Version](https://img.shields.io/badge/Mod_Version-{ReleaseVersion}-blue.svg)
+![Mod Version](https://img.shields.io/badge/Mod_Version-{ModVersion}-blue.svg)
 ![RimWorld Version](https://img.shields.io/badge/Built_for_RimWorld-{GameVersion}-blue.svg)
 ![Harmony Version](https://img.shields.io/badge/Powered_by_Harmony-{HarmonyVersion}-blue.svg)
 ![Steam Downloads](https://img.shields.io/steam/downloads/2812197851?colorB=blue&label=Steam+Downloads)

@@ -3,83 +3,82 @@ using System.Collections.Generic;
 using RimWorld;
 using Verse;
 
-namespace FilterManager.Core
+namespace FilterManager.Core;
+
+internal class Preset
 {
-  internal class Preset
+  public string Name { get; }
+
+  public readonly Dictionary<SpecialThingFilterDef, bool> Filters;
+  public readonly Dictionary<ThingDef, bool> Things;
+
+  public readonly FloatRange? AllowedHitPointsPercents;
+  public readonly QualityRange? AllowedQualityLevels;
+
+  public readonly bool Integrated;
+
+  public Preset(string name, Dictionary<SpecialThingFilterDef, bool>? filters, Dictionary<ThingDef, bool>? things)
   {
-    public string Name { get; }
+    Integrated = true;
 
-    public readonly Dictionary<SpecialThingFilterDef, bool> Filters;
-    public readonly Dictionary<ThingDef, bool> Things;
+    Name = $"<i>{name}</i>";
 
-    public readonly FloatRange? AllowedHitPointsPercents;
-    public readonly QualityRange? AllowedQualityLevels;
+    Filters = filters ?? new Dictionary<SpecialThingFilterDef, bool>();
+    Things = things ?? new Dictionary<ThingDef, bool>();
+  }
 
-    public readonly bool Integrated;
+  public Preset(string name, FloatRange? hitpoints, QualityRange? quality, Dictionary<SpecialThingFilterDef, bool>? filters, Dictionary<ThingDef, bool>? things)
+  {
+    Name = name;
+    AllowedHitPointsPercents = hitpoints;
+    AllowedQualityLevels = quality;
+    Filters = filters ?? new Dictionary<SpecialThingFilterDef, bool>();
+    Things = things ?? new Dictionary<ThingDef, bool>();
+  }
 
-    public Preset(string name, Dictionary<SpecialThingFilterDef, bool>? filters, Dictionary<ThingDef, bool>? things)
+  public Preset(string name)
+  {
+    Name = name;
+
+    Filters = new Dictionary<SpecialThingFilterDef, bool>();
+    Things = new Dictionary<ThingDef, bool>();
+
+    try
     {
-      Integrated = true;
+      AllowedHitPointsPercents = LastState.ActiveFilter.allowedHitPointsConfigurable ? LastState.ActiveFilter.AllowedHitPointsPercents : null;
+      AllowedQualityLevels = LastState.ActiveFilter.allowedQualitiesConfigurable ? LastState.ActiveFilter.AllowedQualityLevels : null;
 
-      Name = $"<i>{name}</i>";
-
-      Filters = filters ?? new Dictionary<SpecialThingFilterDef, bool>();
-      Things = things ?? new Dictionary<ThingDef, bool>();
+      Filters = LastState.GetFiltersAllowed();
+      Things = LastState.GetThingsAllowed();
     }
+    catch (Exception exception) { throw Mod.Exception("Error creating preset", exception); }
+  }
 
-    public Preset(string name, FloatRange? hitpoints, QualityRange? quality, Dictionary<SpecialThingFilterDef, bool>? filters, Dictionary<ThingDef, bool>? things)
-    {
-      Name = name;
-      AllowedHitPointsPercents = hitpoints;
-      AllowedQualityLevels = quality;
-      Filters = filters ?? new Dictionary<SpecialThingFilterDef, bool>();
-      Things = things ?? new Dictionary<ThingDef, bool>();
-    }
+  public void Set(bool? limit, bool invert)
+  {
+    PresetWindow.Instance!.SetName(Integrated ? null : Name);
 
-    public Preset(string name)
-    {
-      Name = name;
+    if (AllowedHitPointsPercents is not null && LastState.ActiveFilter.allowedHitPointsConfigurable) { LastState.ActiveFilter.AllowedHitPointsPercents = AllowedHitPointsPercents.Value; }
+    if (AllowedQualityLevels is not null && LastState.ActiveFilter.allowedQualitiesConfigurable) { LastState.ActiveFilter.AllowedQualityLevels = AllowedQualityLevels.Value; }
 
-      Filters = new Dictionary<SpecialThingFilterDef, bool>();
-      Things = new Dictionary<ThingDef, bool>();
+    LastState.SetAllowed(Filters);
+    LastState.SetAllowed(Things, limit, invert);
+  }
 
-      try
-      {
-        AllowedHitPointsPercents = LastState.ActiveFilter.allowedHitPointsConfigurable ? LastState.ActiveFilter.AllowedHitPointsPercents : null;
-        AllowedQualityLevels = LastState.ActiveFilter.allowedQualitiesConfigurable ? LastState.ActiveFilter.AllowedQualityLevels : null;
+  public void Overwrite()
+  {
+    if (Integrated) { return; }
 
-        Filters = LastState.GetFiltersAllowed();
-        Things = LastState.GetThingsAllowed();
-      }
-      catch (Exception exception) { throw Mod.Exception("Error creating preset", exception); }
-    }
+    PresetWindow.Instance!.SetName(Name);
+    Storage.AddPreset(Name);
+  }
 
-    public void Set(bool? limit, bool invert)
-    {
-      PresetWindow.Instance!.SetName(Integrated ? null : Name);
+  public void Delete()
+  {
+    if (Integrated) { return; }
 
-      if (AllowedHitPointsPercents is not null && LastState.ActiveFilter.allowedHitPointsConfigurable) { LastState.ActiveFilter.AllowedHitPointsPercents = AllowedHitPointsPercents.Value; }
-      if (AllowedQualityLevels is not null && LastState.ActiveFilter.allowedQualitiesConfigurable) { LastState.ActiveFilter.AllowedQualityLevels = AllowedQualityLevels.Value; }
+    PresetWindow.Instance!.SetName();
 
-      LastState.SetAllowed(Filters);
-      LastState.SetAllowed(Things, limit, invert);
-    }
-
-    public void Overwrite()
-    {
-      if (Integrated) { return; }
-
-      PresetWindow.Instance!.SetName(Name);
-      Storage.AddPreset(Name);
-    }
-
-    public void Delete()
-    {
-      if (Integrated) { return; }
-
-      PresetWindow.Instance!.SetName();
-
-      Storage.DeletePreset(this);
-    }
+    Storage.DeletePreset(this);
   }
 }
