@@ -11,7 +11,7 @@ internal static class Mod
 {
   public const string Id = "FilterManager";
   public const string Name = "Filter Manager";
-  public const string Version = "1.7";
+  public const string Version = "1.8";
 
   public static readonly FileInfo ConfigFile = new(Path.Combine(GenFilePaths.ConfigFolderPath, Id, "Presets.xml"));
 

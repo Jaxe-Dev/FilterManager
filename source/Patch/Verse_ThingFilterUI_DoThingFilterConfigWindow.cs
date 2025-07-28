@@ -18,6 +18,8 @@ internal static class Verse_ThingFilterUI_DoThingFilterConfigWindow
     Widgets.DrawMenuSection(rect);
 
     rect.yMin += Offset;
+
+    PresetWindow.StayOpen = true;
   }
 
   [HarmonyPostfix, HarmonyPriority(800)]

@@ -20,10 +20,26 @@ internal static class Storage
   private const string XElementThings = "Things";
   private const string XElementThing = "Thing";
 
-  private static readonly SortedDictionary<string, Preset> PresetsDictionary = new();
+  private static readonly SortedDictionary<string, Preset> PresetsDictionary = new(StringComparer.OrdinalIgnoreCase);
   public static IEnumerable<Preset> Presets => PresetsDictionary.Values.OrderByDescending(static preset => preset.Integrated).ThenBy(static preset => preset.Name);
 
-  public static void AddPreset(string name)
+  private static void BuildIntegrated()
+  {
+    if (ThingCategoryNodeDatabase.RootNode?.catDef is null) { return; }
+
+    AddIntegrated("FilterManager.IntegratedPreset.Degradable".TranslateSimple(), null, ThingCategoryNodeDatabase.RootNode.catDef.DescendantThingDefs.Distinct().ToDictionary(static def => def, static def => def.CanEverDeteriorate && def.GetStatValueAbstract(StatDefOf.DeteriorationRate) > 0));
+    AddIntegrated("FilterManager.IntegratedPreset.Rottable".TranslateSimple(), null, ThingCategoryNodeDatabase.RootNode.catDef.DescendantThingDefs.Distinct().ToDictionary(static def => def, static def => def.HasComp(typeof(CompRottable))));
+  }
+
+  private static void AddIntegrated(string name, Dictionary<SpecialThingFilterDef, bool>? filters, Dictionary<ThingDef, bool> things)
+  {
+    var preset = new Preset(name, filters, things);
+    if (preset.Filters.Count + preset.Things.Count == 0) { return; }
+
+    PresetsDictionary[preset.Name] = preset;
+  }
+
+  private static void AddPreset(string name)
   {
     var preset = new Preset(name);
     if (preset.Filters.Count + preset.Things.Count == 0) { return; }
@@ -33,26 +49,23 @@ internal static class Storage
     Save();
   }
 
-  public static void AddIntegrated(string name, Dictionary<SpecialThingFilterDef, bool>? filters, Dictionary<ThingDef, bool> things)
+  public static void SavePreset(string name)
   {
-    var preset = new Preset(name, filters, things);
-    if (preset.Filters.Count + preset.Things.Count == 0) { return; }
-
-    PresetsDictionary[preset.Name] = preset;
+    if (PresetsDictionary.ContainsKey(name)) { Gfx.ShowConfirmDialog("FilterManager.Button.OverwriteConfirm".Translate(name), () => AddPreset(name)); }
+    else { AddPreset(name); }
   }
 
-  public static void DeletePreset(Preset preset)
+  public static void DeletePreset(Preset preset) => Gfx.ShowConfirmDialog("FilterManager.Button.DeleteConfirm".Translate(preset.Name), () =>
   {
     PresetsDictionary.Remove(preset.Name);
-
     Save();
-  }
+  });
 
   public static void Load()
   {
     PresetsDictionary.Clear();
 
-    IntegratedPresets.Build();
+    BuildIntegrated();
 
     Mod.ConfigFile.Refresh();
     if (!Mod.ConfigFile.Exists) { return; }

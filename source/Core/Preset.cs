@@ -21,7 +21,7 @@ internal class Preset
   {
     Integrated = true;
 
-    Name = $"<i>{name}</i>";
+    Name = name;
 
     Filters = filters ?? new Dictionary<SpecialThingFilterDef, bool>();
     Things = things ?? new Dictionary<ThingDef, bool>();
@@ -54,15 +54,15 @@ internal class Preset
     catch (Exception exception) { throw Mod.Exception("Error creating preset", exception); }
   }
 
-  public void Set(bool? limit, bool invert)
+  public void Set(bool? only, bool invert, bool setName)
   {
-    PresetWindow.Instance!.SetName(Integrated ? null : Name);
+    if (setName) { PresetWindow.Instance!.SetName(Integrated ? null : Name); }
 
     if (AllowedHitPointsPercents is not null && LastState.ActiveFilter.allowedHitPointsConfigurable) { LastState.ActiveFilter.AllowedHitPointsPercents = AllowedHitPointsPercents.Value; }
     if (AllowedQualityLevels is not null && LastState.ActiveFilter.allowedQualitiesConfigurable) { LastState.ActiveFilter.AllowedQualityLevels = AllowedQualityLevels.Value; }
 
     LastState.SetAllowed(Filters);
-    LastState.SetAllowed(Things, limit, invert);
+    LastState.SetAllowed(Things, only, invert);
   }
 
   public void Overwrite()
@@ -70,7 +70,7 @@ internal class Preset
     if (Integrated) { return; }
 
     PresetWindow.Instance!.SetName(Name);
-    Storage.AddPreset(Name);
+    Storage.SavePreset(Name);
   }
 
   public void Delete()

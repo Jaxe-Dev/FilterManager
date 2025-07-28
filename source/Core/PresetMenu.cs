@@ -10,19 +10,18 @@ internal static class PresetMenu
     var options = new List<FloatMenuOption>
     {
       new(preset.Name, null),
-      new("FilterManager.Button.PresetMenu.Apply".Translate(), () => preset.Set(null, false)),
-      new("FilterManager.Button.PresetMenu.ApplyInverse".Translate(), () => preset.Set(null, true)),
+      new("FilterManager.Button.PresetMenu.UseInverse".TranslateSimple(), () => preset.Set(null, true, true)),
 
-      new("FilterManager.Button.PresetMenu.CheckAllowed".Translate(), () => preset.Set(true, false)),
-      new("FilterManager.Button.PresetMenu.UncheckAllowed".Translate(), () => preset.Set(true, true)),
-      new("FilterManager.Button.PresetMenu.CheckForbidden".Translate(), () => preset.Set(false, false)),
-      new("FilterManager.Button.PresetMenu.UncheckForbidden".Translate(), () => preset.Set(false, true))
+      new("FilterManager.Button.PresetMenu.CopyAllowed".TranslateSimple(), () => preset.Set(true, false, false)),
+      new("FilterManager.Button.PresetMenu.CopyAllowedInverse".TranslateSimple(), () => preset.Set(true, true, false)),
+      new("FilterManager.Button.PresetMenu.CopyForbidden".TranslateSimple(), () => preset.Set(false, false, false)),
+      new("FilterManager.Button.PresetMenu.CopyForbiddenInverse".TranslateSimple(), () => preset.Set(false, true, false))
     };
 
     if (!preset.Integrated)
     {
-      options.Add(new FloatMenuOption("FilterManager.Button.PresetMenu.Overwrite".Translate(), preset.Overwrite));
-      options.Add(new FloatMenuOption("FilterManager.Button.PresetMenu.Delete".Translate(), preset.Delete));
+      options.Add(new FloatMenuOption("FilterManager.Button.PresetMenu.Overwrite".TranslateSimple().Colorize(Gfx.CriticalColor), preset.Overwrite));
+      options.Add(new FloatMenuOption("FilterManager.Button.PresetMenu.Delete".TranslateSimple().Colorize(Gfx.CriticalColor), preset.Delete));
     }
 
     Find.WindowStack!.Add(new FloatMenuUnsorted(options));

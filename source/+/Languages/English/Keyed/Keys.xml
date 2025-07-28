@@ -7,16 +7,17 @@
 
   <FilterManager.Button.Save>Save</FilterManager.Button.Save>
 
-  <FilterManager.Button.PresetMenu.Apply>Apply</FilterManager.Button.PresetMenu.Apply>
-  <FilterManager.Button.PresetMenu.ApplyInverse>Apply inverse</FilterManager.Button.PresetMenu.ApplyInverse>
+  <FilterManager.Button.PresetMenu.UseInverse>Use inverted</FilterManager.Button.PresetMenu.UseInverse>
+  <FilterManager.Button.PresetMenu.CopyAllowed>Copy allowed only</FilterManager.Button.PresetMenu.CopyAllowed>
+  <FilterManager.Button.PresetMenu.CopyAllowedInverse>Copy allowed only (inverted)</FilterManager.Button.PresetMenu.CopyAllowedInverse>
+  <FilterManager.Button.PresetMenu.CopyForbidden>Copy forbidden only</FilterManager.Button.PresetMenu.CopyForbidden>
+  <FilterManager.Button.PresetMenu.CopyForbiddenInverse>Copy forbidden only (inverted)</FilterManager.Button.PresetMenu.CopyForbiddenInverse>
 
-  <FilterManager.Button.PresetMenu.Delete>Delete</FilterManager.Button.PresetMenu.Delete>
   <FilterManager.Button.PresetMenu.Overwrite>Overwrite with current</FilterManager.Button.PresetMenu.Overwrite>
+  <FilterManager.Button.PresetMenu.Delete>Delete</FilterManager.Button.PresetMenu.Delete>
 
-  <FilterManager.Button.PresetMenu.CheckAllowed>Check allowed only</FilterManager.Button.PresetMenu.CheckAllowed>
-  <FilterManager.Button.PresetMenu.CheckForbidden>Check forbidden only</FilterManager.Button.PresetMenu.CheckForbidden>
-  <FilterManager.Button.PresetMenu.UncheckAllowed>Uncheck allowed only</FilterManager.Button.PresetMenu.UncheckAllowed>
-  <FilterManager.Button.PresetMenu.UncheckForbidden>Uncheck forbidden only</FilterManager.Button.PresetMenu.UncheckForbidden>
+  <FilterManager.Button.OverwriteConfirm>Overwrite preset "{0}"?</FilterManager.Button.OverwriteConfirm>
+  <FilterManager.Button.DeleteConfirm>Delete preset "{0}"?</FilterManager.Button.DeleteConfirm>
 
   <FilterManager.IntegratedPreset.Degradable>Degradeable</FilterManager.IntegratedPreset.Degradable>
   <FilterManager.IntegratedPreset.Rottable>Rottable</FilterManager.IntegratedPreset.Rottable>
