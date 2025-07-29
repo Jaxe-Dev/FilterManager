@@ -1,11 +1,10 @@
-﻿using System.Linq;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using UnityEngine;
 using Verse;
 
 namespace FilterManager.Core;
 
-internal class PresetWindow : Window
+public class PresetWindow : Window
 {
   private const float Width = 360f;
 
@@ -13,36 +12,122 @@ internal class PresetWindow : Window
   private const float ScrollbarWidth = 20f;
 
   private const string NameEntryControl = Mod.Id + ".NameEntry";
-  private const float NameEntryLabelWidth = 60f;
   private const int NameEntryMaxLength = 32;
 
-  private const float RightButtonWidth = 60f;
+  private const float SideWidth = 60f;
 
   public static PresetWindow? Instance;
 
   private static readonly Regex NameEntryRegex = new("^[^*<>[\\]]*$");
+  private static bool _focusNameEntry = true;
+
+  private static Vector2 _scrollPosition;
+  private static Rect _scrollRect;
+
+  private static Preset? _matched;
+
+  private static string? _nameEntry;
 
   public static bool StayOpen { get; set; }
 
-  private Vector2 _scrollPosition;
-  private Rect _scrollRect;
-
-  private string? _nameEntry;
-  private bool _focusNameEntry = true;
-
-  private Preset? _matched;
-
   public PresetWindow()
   {
-    Instance = this;
-
     doCloseX = true;
     layer = WindowLayer.SubSuper;
+
+    Instance = this;
+
+    _nameEntry = null;
+    _focusNameEntry = true;
+
+    _matched = null;
   }
+
+  public static void FocusName(string name)
+  {
+    _nameEntry = name;
+    _focusNameEntry = true;
+  }
+
+  private static void Save() => Storage.SavePreset(_nameEntry!);
+
+  private static void DrawTop(Rect rect)
+  {
+    Widgets.Label(new Rect(rect.x, rect.y, SideWidth, rect.height), "FilterManager.Preset".TranslateSimple());
+
+    GUI.SetNextControlName(NameEntryControl);
+    var name = Widgets.TextField(new Rect(rect.x + SideWidth, rect.y, rect.width - (SideWidth * 2f), Text.LineHeight), _nameEntry, NameEntryMaxLength, NameEntryRegex) ?? "";
+    if (name.Length <= NameEntryMaxLength) { _nameEntry = name; }
+
+    if (_focusNameEntry)
+    {
+      GUI.FocusControl(NameEntryControl);
+      var editor = GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl) as TextEditor;
+      editor?.MoveTextEnd();
+      editor?.SelectNone();
+
+      _focusNameEntry = false;
+    }
+
+    if (Gfx.DrawButton(new Rect(rect.xMax - SideWidth, rect.y, SideWidth, Text.LineHeight), "FilterManager.Save".TranslateSimple(), Storage.CanSave(_nameEntry))) { Save(); }
+  }
+
+  private static void DrawPresets(Rect rect)
+  {
+    if (_scrollRect == default) { _scrollRect = new Rect(rect.x, rect.y + Text.LineHeight + SectionPadding, rect.width, 99999f); }
+
+    var buttonWidth = _scrollRect.width - SideWidth;
+    var y = 0f;
+
+    rect.xMax += ScrollbarWidth;
+    Widgets.BeginScrollView(rect, ref _scrollPosition, _scrollRect);
+
+    var fullMatch = (bool?)null;
+    foreach (var preset in Storage.Presets)
+    {
+      var match = FilterWindow.MatchesPreset(preset);
+      var lastColor = GUI.color;
+      GUI.color = GetMatchColor(match) ?? lastColor;
+
+      if (match is MatchResult.Full or MatchResult.Partial)
+      {
+        if (fullMatch is null)
+        {
+          if (_matched != preset) { FocusName(preset.Name); }
+          _matched = preset;
+          fullMatch = match is MatchResult.Full;
+        }
+      }
+      else if (!preset.Integrated && _nameEntry == preset.Name) { GUI.color = Gfx.CriticalColor; }
+
+      if (Gfx.DrawButton(new Rect(_scrollRect.x, _scrollRect.y + y, buttonWidth, Text.LineHeight), preset.Integrated ? $"<i>{preset.Name}</i>" : preset.Name))
+      {
+        if (match == MatchResult.NotApplicable) { PresetMenu.Draw(preset, true); }
+        else { preset.Apply(null, false, false, true); }
+      }
+
+      if (Gfx.DrawButton(new Rect(_scrollRect.xMax - SideWidth, _scrollRect.y + y, SideWidth, Text.LineHeight), "...")) { PresetMenu.Draw(preset, match is MatchResult.NotApplicable); }
+      GUI.color = lastColor;
+
+      y += Text.LineHeight;
+    }
+
+    Widgets.EndScrollView();
+
+    _scrollRect.height = y;
+  }
+
+  private static Color? GetMatchColor(MatchResult match) => match switch
+  {
+    MatchResult.Full => Gfx.SelectedColor,
+    MatchResult.Partial => Gfx.PartialColor,
+    MatchResult.NotApplicable => Gfx.InactiveColor,
+    _ => null
+  };
 
   protected override void SetInitialSizeAndPosition()
   {
-    var lastRect = LastState.Rect;
+    var lastRect = FilterWindow.Rect;
     lastRect.position /= Prefs.UIScale;
 
     var rect = GUIUtility.GUIToScreenRect(lastRect);
@@ -77,68 +162,11 @@ internal class PresetWindow : Window
     Text.Font = font;
   }
 
-  private void DrawTop(Rect rect)
+  public enum MatchResult
   {
-    Widgets.Label(new Rect(rect.x, rect.y, NameEntryLabelWidth, rect.height), "FilterManager.Preset.Label".TranslateSimple());
-
-    GUI.SetNextControlName(NameEntryControl);
-    var nameEntry = Widgets.TextField(new Rect(rect.x + NameEntryLabelWidth, rect.y, rect.width - (NameEntryLabelWidth + RightButtonWidth), Text.LineHeight), _nameEntry, NameEntryMaxLength, NameEntryRegex) ?? "";
-    if (nameEntry.Length <= NameEntryMaxLength) { _nameEntry = nameEntry; }
-
-    if (_focusNameEntry)
-    {
-      GUI.FocusControl(NameEntryControl);
-      (GUIUtility.GetStateObject(typeof(TextEditor), GUIUtility.keyboardControl) as TextEditor)?.MoveTextEnd();
-
-      _focusNameEntry = false;
-    }
-
-    if (Gfx.DrawButton(new Rect(rect.xMax - RightButtonWidth, rect.y, RightButtonWidth, Text.LineHeight), "FilterManager.Button.Save".TranslateSimple(), !string.IsNullOrWhiteSpace(_nameEntry))) { Storage.SavePreset(_nameEntry!); }
-  }
-
-  private void DrawPresets(Rect rect)
-  {
-    if (_scrollRect == default) { _scrollRect = new Rect(rect.x, rect.y + Text.LineHeight + SectionPadding, rect.width, 99999f); }
-
-    var buttonWidth = _scrollRect.width - RightButtonWidth;
-    var y = 0f;
-
-    rect.xMax += ScrollbarWidth;
-    Widgets.BeginScrollView(rect, ref _scrollPosition, _scrollRect);
-
-    var selected = false;
-    foreach (var preset in Storage.Presets.ToArray())
-    {
-      var color = GUI.color;
-      if (LastState.MatchesPreset(preset))
-      {
-        GUI.color = Gfx.SelectedColor;
-
-        if (!selected)
-        {
-          if (_matched != preset) { _nameEntry = preset.Integrated ? null : preset.Name; }
-          _matched = preset;
-          selected = true;
-        }
-      }
-      else if (!preset.Integrated && _nameEntry == preset.Name) { GUI.color = Gfx.CriticalColor; }
-
-      if (Gfx.DrawButton(new Rect(_scrollRect.x, _scrollRect.y + y, buttonWidth, Text.LineHeight), preset.Integrated ? $"<i>{preset.Name}</i>" : preset.Name)) { preset.Set(null, false, true); }
-      if (Gfx.DrawButton(new Rect(_scrollRect.xMax - RightButtonWidth, _scrollRect.y + y, RightButtonWidth, Text.LineHeight), "...")) { PresetMenu.Draw(preset); }
-
-      GUI.color = color;
-
-      y += Text.LineHeight;
-    }
-
-    Widgets.EndScrollView();
-
-    _scrollRect.height = y;
-  }
-
-  public void SetName(string? name = null)
-  {
-    _nameEntry = name ?? null;
-    _focusNameEntry = true;
+    NotApplicable,
+    None,
+    Partial,
+    Full
   }
 }

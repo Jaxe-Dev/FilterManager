@@ -8,7 +8,7 @@ using Verse;
 
 namespace FilterManager.Core;
 
-internal static class Storage
+public static class Storage
 {
   private const string XAttributeName = "Name";
   private const string XElementPresets = "Presets";
@@ -21,51 +21,43 @@ internal static class Storage
   private const string XElementThing = "Thing";
 
   private static readonly SortedDictionary<string, Preset> PresetsDictionary = new(StringComparer.OrdinalIgnoreCase);
-  public static IEnumerable<Preset> Presets => PresetsDictionary.Values.OrderByDescending(static preset => preset.Integrated).ThenBy(static preset => preset.Name);
+  private static readonly SortedDictionary<string, Preset> IntegratedPresetsDictionary = new(StringComparer.OrdinalIgnoreCase);
 
-  private static void BuildIntegrated()
+  public static IEnumerable<Preset> Presets => IntegratedPresetsDictionary.Values.Concat(PresetsDictionary.Values.OrderByDescending(static preset => preset.Integrated).ThenBy(static preset => preset.Name));
+
+  private static void AddIntegrated()
   {
-    if (ThingCategoryNodeDatabase.RootNode?.catDef is null) { return; }
-
-    AddIntegrated("FilterManager.IntegratedPreset.Degradable".TranslateSimple(), null, ThingCategoryNodeDatabase.RootNode.catDef.DescendantThingDefs.Distinct().ToDictionary(static def => def, static def => def.CanEverDeteriorate && def.GetStatValueAbstract(StatDefOf.DeteriorationRate) > 0));
-    AddIntegrated("FilterManager.IntegratedPreset.Rottable".TranslateSimple(), null, ThingCategoryNodeDatabase.RootNode.catDef.DescendantThingDefs.Distinct().ToDictionary(static def => def, static def => def.HasComp(typeof(CompRottable))));
+    foreach (var preset in Preset.BuildIntegrated()) { IntegratedPresetsDictionary[preset.Name] = preset; }
   }
 
-  private static void AddIntegrated(string name, Dictionary<SpecialThingFilterDef, bool>? filters, Dictionary<ThingDef, bool> things)
+  private static void AddPreset(Preset preset)
   {
-    var preset = new Preset(name, filters, things);
-    if (preset.Filters.Count + preset.Things.Count == 0) { return; }
-
     PresetsDictionary[preset.Name] = preset;
-  }
-
-  private static void AddPreset(string name)
-  {
-    var preset = new Preset(name);
-    if (preset.Filters.Count + preset.Things.Count == 0) { return; }
-
-    PresetsDictionary[preset.Name] = preset;
-
     Save();
   }
 
   public static void SavePreset(string name)
   {
-    if (PresetsDictionary.ContainsKey(name)) { Gfx.ShowConfirmDialog("FilterManager.Button.OverwriteConfirm".Translate(name), () => AddPreset(name)); }
-    else { AddPreset(name); }
+    var preset = FilterWindow.CreatePreset(name);
+
+    if (PresetsDictionary.ContainsKey(preset.Name)) { Gfx.ShowConfirmDialog("FilterManager.OverwriteConfirm".Translate(preset.Name), () => AddPreset(preset)); }
+    else { AddPreset(preset); }
   }
 
-  public static void DeletePreset(Preset preset) => Gfx.ShowConfirmDialog("FilterManager.Button.DeleteConfirm".Translate(preset.Name), () =>
+  public static void DeletePreset(Preset preset) => Gfx.ShowConfirmDialog("FilterManager.DeleteConfirm".Translate(preset.Name), () =>
   {
     PresetsDictionary.Remove(preset.Name);
     Save();
   });
 
+  public static bool CanSave(string? name) => !string.IsNullOrWhiteSpace(name) && !IntegratedPresetsDictionary.ContainsKey(name!);
+
   public static void Load()
   {
     PresetsDictionary.Clear();
+    IntegratedPresetsDictionary.Clear();
 
-    BuildIntegrated();
+    AddIntegrated();
 
     Mod.ConfigFile.Refresh();
     if (!Mod.ConfigFile.Exists) { return; }
@@ -75,7 +67,7 @@ internal static class Storage
 
     foreach (var element in presets?.Elements(XElementPreset) ?? [])
     {
-      var name = element.Attribute(XAttributeName)?.Value;
+      var name = element.Attribute(XAttributeName)?.Value!;
       if (string.IsNullOrWhiteSpace(name))
       {
         Mod.Warning("Failed to load unnamed preset");
@@ -84,13 +76,12 @@ internal static class Storage
 
       try
       {
+        var things = LoadDefs<ThingDef>(element.Element(XElementThings));
+        var filters = LoadDefs<SpecialThingFilterDef>(element.Element(XElementFilters));
         var hitpoints = LoadHitpoints(element.Element(XElementHitpoints));
         var quality = LoadQuality(element.Element(XElementQuality));
 
-        var specials = LoadDefs<SpecialThingFilterDef>(element.Element(XElementFilters));
-        var things = LoadDefs<ThingDef>(element.Element(XElementThings));
-
-        PresetsDictionary[name!] = new Preset(name!, hitpoints, quality, specials, things);
+        PresetsDictionary[name] = new Preset(name, things, filters, hitpoints, quality);
       }
       catch { Mod.Warning($"Failed to load preset '{name}'"); }
     }
@@ -158,10 +149,10 @@ internal static class Storage
       Mod.ConfigFile.Directory!.Create();
       document.Save(Mod.ConfigFile.FullName);
     }
-    catch (Exception exception) { throw Mod.Exception("Error saving presets", exception); }
+    catch (Exception exception) { throw new Exception("Error saving presets", exception); }
   }
 
-  private static void SerializeDefs<T>(string group, string item, Dictionary<T, bool> dictionary, XElement root) where T : Def
+  private static void SerializeDefs<T>(string group, string item, IEnumerable<KeyValuePair<T, bool>> dictionary, XElement root) where T : Def
   {
     var element = new XElement(group);
     foreach (var entry in dictionary) { element.Add(new XElement(item, new XAttribute(XAttributeName, entry.Key!.defName)) { Value = XmlConvert.ToString(entry.Value) }); }
@@ -172,11 +163,11 @@ internal static class Storage
   {
     var element = new XElement(XElementPreset, new XAttribute(XAttributeName, preset.Name));
 
-    if (preset.AllowedHitPointsPercents != null) { element.Add(new XElement(XElementHitpoints) { Value = preset.AllowedHitPointsPercents.Value.ToString() }); }
-    if (preset.AllowedQualityLevels != null) { element.Add(new XElement(XElementQuality) { Value = preset.AllowedQualityLevels.Value.ToString() }); }
+    if (preset.AllowedHitPointsPercents is not null) { element.Add(new XElement(XElementHitpoints) { Value = preset.AllowedHitPointsPercents.Value.ToString() }); }
+    if (preset.AllowedQualityLevels is not null) { element.Add(new XElement(XElementQuality) { Value = preset.AllowedQualityLevels.Value.ToString() }); }
 
-    SerializeDefs(XElementFilters, XElementFilter, preset.Filters, element);
-    SerializeDefs(XElementThings, XElementThing, preset.Things, element);
+    SerializeDefs(XElementFilters, XElementFilter, preset.Filters.Where(static def => !def.Value), element);
+    SerializeDefs(XElementThings, XElementThing, preset.Things.Where(static def => def.Value), element);
 
     return element;
   }

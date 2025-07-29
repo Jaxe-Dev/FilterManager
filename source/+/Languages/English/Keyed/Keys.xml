@@ -1,24 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
-  <FilterManager.Preset.Label>Preset</FilterManager.Preset.Label>
-
-  <FilterManager.Button.Invert>Invert</FilterManager.Button.Invert>
-  <FilterManager.Button.Presets>Presets</FilterManager.Button.Presets>
-
-  <FilterManager.Button.Save>Save</FilterManager.Button.Save>
-
-  <FilterManager.Button.PresetMenu.UseInverse>Use inverted</FilterManager.Button.PresetMenu.UseInverse>
-  <FilterManager.Button.PresetMenu.CopyAllowed>Copy allowed only</FilterManager.Button.PresetMenu.CopyAllowed>
-  <FilterManager.Button.PresetMenu.CopyAllowedInverse>Copy allowed only (inverted)</FilterManager.Button.PresetMenu.CopyAllowedInverse>
-  <FilterManager.Button.PresetMenu.CopyForbidden>Copy forbidden only</FilterManager.Button.PresetMenu.CopyForbidden>
-  <FilterManager.Button.PresetMenu.CopyForbiddenInverse>Copy forbidden only (inverted)</FilterManager.Button.PresetMenu.CopyForbiddenInverse>
-
-  <FilterManager.Button.PresetMenu.Overwrite>Overwrite with current</FilterManager.Button.PresetMenu.Overwrite>
-  <FilterManager.Button.PresetMenu.Delete>Delete</FilterManager.Button.PresetMenu.Delete>
-
-  <FilterManager.Button.OverwriteConfirm>Overwrite preset "{0}"?</FilterManager.Button.OverwriteConfirm>
-  <FilterManager.Button.DeleteConfirm>Delete preset "{0}"?</FilterManager.Button.DeleteConfirm>
+  <FilterManager.Preset>Preset</FilterManager.Preset>
+  <FilterManager.Presets>Presets</FilterManager.Presets>
 
   <FilterManager.IntegratedPreset.Degradable>Degradeable</FilterManager.IntegratedPreset.Degradable>
   <FilterManager.IntegratedPreset.Rottable>Rottable</FilterManager.IntegratedPreset.Rottable>
+
+  <FilterManager.Invert>Invert</FilterManager.Invert>
+  <FilterManager.NotApplicable>{0} is currently not applicable</FilterManager.NotApplicable>
+
+  <FilterManager.Use>Use this preset</FilterManager.Use>
+  <FilterManager.UseInverse>Use inverse of this preset</FilterManager.UseInverse>
+  <FilterManager.CheckAllowedOnly>Check allowed only</FilterManager.CheckAllowedOnly>
+  <FilterManager.UncheckAllowedOnly>Uncheck allowed only</FilterManager.UncheckAllowedOnly>
+
+  <FilterManager.Save>Save</FilterManager.Save>
+  <FilterManager.Overwrite>Overwrite with current</FilterManager.Overwrite>
+  <FilterManager.OverwriteConfirm>Overwrite preset "{0}"?</FilterManager.OverwriteConfirm>
+  <FilterManager.Delete>Delete</FilterManager.Delete>
+  <FilterManager.DeleteConfirm>Delete preset "{0}"?</FilterManager.DeleteConfirm>
 </LanguageData>

@@ -1,75 +1,55 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using Verse;
 
 namespace FilterManager.Core;
 
-internal class Preset
+public class Preset
 {
   public string Name { get; }
 
-  public readonly Dictionary<SpecialThingFilterDef, bool> Filters;
-  public readonly Dictionary<ThingDef, bool> Things;
+  public Dictionary<ThingDef, bool> Things { get; }
+  public Dictionary<SpecialThingFilterDef, bool> Filters { get; }
 
-  public readonly FloatRange? AllowedHitPointsPercents;
-  public readonly QualityRange? AllowedQualityLevels;
+  public FloatRange? AllowedHitPointsPercents { get; }
+  public QualityRange? AllowedQualityLevels { get; }
 
-  public readonly bool Integrated;
+  public bool Integrated { get; }
 
-  public Preset(string name, Dictionary<SpecialThingFilterDef, bool>? filters, Dictionary<ThingDef, bool>? things)
-  {
-    Integrated = true;
-
-    Name = name;
-
-    Filters = filters ?? new Dictionary<SpecialThingFilterDef, bool>();
-    Things = things ?? new Dictionary<ThingDef, bool>();
-  }
-
-  public Preset(string name, FloatRange? hitpoints, QualityRange? quality, Dictionary<SpecialThingFilterDef, bool>? filters, Dictionary<ThingDef, bool>? things)
+  public Preset(string name, Dictionary<ThingDef, bool> things, Dictionary<SpecialThingFilterDef, bool> filters, FloatRange? hitpoints = null, QualityRange? quality = null)
   {
     Name = name;
+
+    Things = things;
+    Filters = filters;
+
     AllowedHitPointsPercents = hitpoints;
     AllowedQualityLevels = quality;
-    Filters = filters ?? new Dictionary<SpecialThingFilterDef, bool>();
-    Things = things ?? new Dictionary<ThingDef, bool>();
   }
 
-  public Preset(string name)
+  public Preset(string name, Dictionary<ThingDef, bool> things) : this(name, things, new Dictionary<SpecialThingFilterDef, bool>()) => Integrated = true;
+
+  public static IEnumerable<Preset> BuildIntegrated() =>
+  [
+    BuildFromPredicate("FilterManager.IntegratedPreset.Degradable".TranslateSimple(), static def => def.CanEverDeteriorate && def.GetStatValueAbstract(StatDefOf.DeteriorationRate) > 0),
+    BuildFromPredicate("FilterManager.IntegratedPreset.Rottable".TranslateSimple(), static def => def.HasComp(typeof(CompRottable)))
+  ];
+
+  private static Preset BuildFromPredicate(string name, Func<ThingDef, bool> predicate) => new(name, ThingCategoryNodeDatabase.RootNode!.catDef!.DescendantThingDefs.Where(predicate).ToDictionary(static def => def, static _ => true));
+
+  public void Apply(bool? target, bool invert, bool? fallback, bool setName)
   {
-    Name = name;
-
-    Filters = new Dictionary<SpecialThingFilterDef, bool>();
-    Things = new Dictionary<ThingDef, bool>();
-
-    try
-    {
-      AllowedHitPointsPercents = LastState.ActiveFilter.allowedHitPointsConfigurable ? LastState.ActiveFilter.AllowedHitPointsPercents : null;
-      AllowedQualityLevels = LastState.ActiveFilter.allowedQualitiesConfigurable ? LastState.ActiveFilter.AllowedQualityLevels : null;
-
-      Filters = LastState.GetFiltersAllowed();
-      Things = LastState.GetThingsAllowed();
-    }
-    catch (Exception exception) { throw Mod.Exception("Error creating preset", exception); }
-  }
-
-  public void Set(bool? only, bool invert, bool setName)
-  {
-    if (setName) { PresetWindow.Instance!.SetName(Integrated ? null : Name); }
-
-    if (AllowedHitPointsPercents is not null && LastState.ActiveFilter.allowedHitPointsConfigurable) { LastState.ActiveFilter.AllowedHitPointsPercents = AllowedHitPointsPercents.Value; }
-    if (AllowedQualityLevels is not null && LastState.ActiveFilter.allowedQualitiesConfigurable) { LastState.ActiveFilter.AllowedQualityLevels = AllowedQualityLevels.Value; }
-
-    LastState.SetAllowed(Filters);
-    LastState.SetAllowed(Things, only, invert);
+    if (setName) { PresetWindow.FocusName(Name); }
+    FilterWindow.Apply(this, target, invert, fallback);
   }
 
   public void Overwrite()
   {
-    if (Integrated) { return; }
+    if (Integrated) { throw new Exception("Tried to overwrite integrated preset"); }
 
-    PresetWindow.Instance!.SetName(Name);
+    PresetWindow.FocusName(Name);
     Storage.SavePreset(Name);
   }
 
@@ -77,7 +57,7 @@ internal class Preset
   {
     if (Integrated) { return; }
 
-    PresetWindow.Instance!.SetName();
+    PresetWindow.FocusName(Name);
 
     Storage.DeletePreset(this);
   }

@@ -3,25 +3,29 @@ using Verse;
 
 namespace FilterManager.Core;
 
-internal static class PresetMenu
+public static class PresetMenu
 {
-  public static void Draw(Preset preset)
+  public static void Draw(Preset preset, bool unused)
   {
+    if (unused)
+    {
+      Find.WindowStack!.Add(new FloatMenuUnsorted([new FloatMenuOption("FilterManager.NotApplicable".Translate(preset.Name), null)]));
+      return;
+    }
+
     var options = new List<FloatMenuOption>
     {
       new(preset.Name, null),
-      new("FilterManager.Button.PresetMenu.UseInverse".TranslateSimple(), () => preset.Set(null, true, true)),
-
-      new("FilterManager.Button.PresetMenu.CopyAllowed".TranslateSimple(), () => preset.Set(true, false, false)),
-      new("FilterManager.Button.PresetMenu.CopyAllowedInverse".TranslateSimple(), () => preset.Set(true, true, false)),
-      new("FilterManager.Button.PresetMenu.CopyForbidden".TranslateSimple(), () => preset.Set(false, false, false)),
-      new("FilterManager.Button.PresetMenu.CopyForbiddenInverse".TranslateSimple(), () => preset.Set(false, true, false))
+      new("FilterManager.Use".TranslateSimple(), () => preset.Apply(null, true, false, true)),
+      new("FilterManager.UseInverse".TranslateSimple(), () => preset.Apply(null, true, false, true)),
+      new("FilterManager.CheckAllowedOnly".TranslateSimple(), () => preset.Apply(true, false, null, false)),
+      new("FilterManager.UncheckAllowedOnly".TranslateSimple(), () => preset.Apply(true, true, null, false))
     };
 
     if (!preset.Integrated)
     {
-      options.Add(new FloatMenuOption("FilterManager.Button.PresetMenu.Overwrite".TranslateSimple().Colorize(Gfx.CriticalColor), preset.Overwrite));
-      options.Add(new FloatMenuOption("FilterManager.Button.PresetMenu.Delete".TranslateSimple().Colorize(Gfx.CriticalColor), preset.Delete));
+      options.Add(new FloatMenuOption("FilterManager.Overwrite".TranslateSimple().Colorize(Gfx.CriticalColor), preset.Overwrite));
+      options.Add(new FloatMenuOption("FilterManager.Delete".TranslateSimple().Colorize(Gfx.CriticalColor), preset.Delete));
     }
 
     Find.WindowStack!.Add(new FloatMenuUnsorted(options));
