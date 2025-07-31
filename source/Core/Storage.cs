@@ -40,7 +40,14 @@ public static class Storage
   {
     var preset = FilterWindow.CreatePreset(name);
 
-    if (PresetsDictionary.ContainsKey(preset.Name)) { Gfx.ShowConfirmDialog("FilterManager.OverwriteConfirm".Translate(preset.Name), () => AddPreset(preset)); }
+    if (PresetsDictionary.ContainsKey(preset.Name))
+    {
+      Gfx.ShowConfirmDialog("FilterManager.OverwriteConfirm".Translate(preset.Name), () =>
+      {
+        AddPreset(preset);
+        PresetWindow.FocusName(preset.Name);
+      });
+    }
     else { AddPreset(preset); }
   }
 
@@ -48,6 +55,7 @@ public static class Storage
   {
     PresetsDictionary.Remove(preset.Name);
     Save();
+    PresetWindow.FocusName(null);
   });
 
   public static bool CanSave(string? name) => !string.IsNullOrWhiteSpace(name) && !IntegratedPresetsDictionary.ContainsKey(name!);

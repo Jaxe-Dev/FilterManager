@@ -94,10 +94,10 @@ public static class FilterWindow
 
   public static Preset CreatePreset(string name) => new(name, GetThingDictionary(), GetSpecialFilterDictionary(), GetHitpoints(), GetQuality());
 
-  private static IEnumerable<ThingDef> GetThings() => _rootCategory.DescendantThingDefs.Where(static def => !_forceHiddenDefs?.Contains(def) ?? true);
+  private static IEnumerable<ThingDef> GetThings() => _rootCategory.DescendantThingDefs.Distinct().Where(static def => !_forceHiddenDefs?.Contains(def) ?? true);
   private static Dictionary<ThingDef, bool> GetThingDictionary() => GetThings().Where(static def => _active.Allows(def)).ToDictionary(static def => def, static _ => true);
 
-  private static IEnumerable<SpecialThingFilterDef> GetSpecialFilters() => _rootCategory.DescendantSpecialThingFilterDefs.Where(static def => def.configurable && (!_forceHiddenFilters?.Contains(def) ?? true));
+  private static IEnumerable<SpecialThingFilterDef> GetSpecialFilters() => _rootCategory.DescendantSpecialThingFilterDefs.Distinct().Where(static def => def.configurable && (!_forceHiddenFilters?.Contains(def) ?? true));
   private static Dictionary<SpecialThingFilterDef, bool> GetSpecialFilterDictionary() => GetSpecialFilters().Where(static def => !_active.Allows(def)).ToDictionary(static def => def, static _ => false);
 
   private static FloatRange? GetHitpoints() => (_parent?.allowedHitPointsConfigurable ?? true) && _parent?.AllowedHitPointsPercents != _active.AllowedHitPointsPercents ? _active.AllowedHitPointsPercents : null;

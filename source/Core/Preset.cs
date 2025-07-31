@@ -37,7 +37,7 @@ public class Preset
     BuildFromPredicate("FilterManager.IntegratedPreset.Rottable".TranslateSimple(), static def => def.HasComp(typeof(CompRottable)))
   ];
 
-  private static Preset BuildFromPredicate(string name, Func<ThingDef, bool> predicate) => new(name, ThingCategoryNodeDatabase.RootNode!.catDef!.DescendantThingDefs.Where(predicate).ToDictionary(static def => def, static _ => true));
+  private static Preset BuildFromPredicate(string name, Func<ThingDef, bool> predicate) => new(name, ThingCategoryNodeDatabase.RootNode!.catDef!.DescendantThingDefs.Distinct().Where(predicate).ToDictionary(static def => def, static _ => true));
 
   public void Apply(bool? target, bool invert, bool? fallback, bool setName)
   {
@@ -49,15 +49,12 @@ public class Preset
   {
     if (Integrated) { throw new Exception("Tried to overwrite integrated preset"); }
 
-    PresetWindow.FocusName(Name);
     Storage.SavePreset(Name);
   }
 
   public void Delete()
   {
     if (Integrated) { return; }
-
-    PresetWindow.FocusName(Name);
 
     Storage.DeletePreset(this);
   }

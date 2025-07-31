@@ -43,7 +43,7 @@ public class PresetWindow : Window
     _matched = null;
   }
 
-  public static void FocusName(string name)
+  public static void FocusName(string? name)
   {
     _nameEntry = name;
     _focusNameEntry = true;
