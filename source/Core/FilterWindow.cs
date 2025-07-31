@@ -33,11 +33,8 @@ public static class FilterWindow
 
   public static void Apply(Preset preset, bool? target, bool invert, bool? fallback)
   {
-    if (fallback is not null)
-    {
-      if (fallback.Value) { _active.SetAllowAll(_parent); }
-      else { _active.SetDisallowAll(); }
-    }
+    if (fallback is true || (invert && fallback is false)) { _active.SetAllowAll(_parent); }
+    else if (fallback is false) { _active.SetDisallowAll(); }
 
     if (_parent is null)
     {
@@ -55,7 +52,7 @@ public static class FilterWindow
       foreach (var entry in preset.Filters) { _active.SetAllow(entry.Key, entry.Value); }
     }
 
-    foreach (var entry in preset.Things.Where(entry => target is null || entry.Value == target.Value)) { _active.SetAllow(entry.Key, invert ? !entry.Value : entry.Value); }
+    foreach (var entry in preset.Things.Where(entry => target is null || entry.Value == target.Value)) { _active.SetAllow(entry.Key, invert != entry.Value); }
   }
 
   public static void Invert()

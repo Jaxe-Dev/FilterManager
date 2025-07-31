@@ -16,8 +16,8 @@ public static class PresetMenu
     var options = new List<FloatMenuOption>
     {
       new(preset.Name, null),
-      new("FilterManager.Use".TranslateSimple(), () => preset.Apply(null, true, false, true)),
-      new("FilterManager.UseInverse".TranslateSimple(), () => preset.Apply(null, true, false, true)),
+      new("FilterManager.Use".TranslateSimple(), () => preset.Apply(null, false, false, true)),
+      new("FilterManager.UseInverse".TranslateSimple(), () => preset.Apply(null, true, true, true)),
       new("FilterManager.CheckAllowedOnly".TranslateSimple(), () => preset.Apply(true, false, null, false)),
       new("FilterManager.UncheckAllowedOnly".TranslateSimple(), () => preset.Apply(true, true, null, false))
     };
